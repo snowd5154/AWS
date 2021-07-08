@@ -1,0 +1,37 @@
+##This AWS function code will
+##identify all charged services
+#for you to possibly remove
+
+##Make a note this is just a working code so far. Let me know if this is incorrect. This code did compile using VS 2019!!!
+
+import boto3
+
+def lambda_handler(event, context): ##event-data; context-runtime
+    ec2 = boto3.client('ec2')
+    #List of regions
+    regions = ec2.describe_regions().get('Regions',[])
+    #Iterate over region
+    for region in regions:
+        #Run for particular region
+        print("******Checking region -- %s " % region['RegionName'])
+        reg = region['RegionName']
+#List resource types
+resource_types = ec2.describe_resource_types().get('Resource Types', [])
+#Iterage over resource types
+for resource_type in resource_types:
+    #run for particular resource_type
+    print("*****Checking Resource Type -- %s " % resource_type['ResourceType'])
+    res = resource_type['ResourceType']
+#####Resource Type#####
+print("+++++Starting Resource Type Now -----")
+clientRT = boto3.client('resourcetype', region_name = reg)
+result = clientRT.describe_resource_type()
+for rt1 in result['ResourceType']:
+    print("About to delete %s | in %s" % (rt1['ResourceType'], region['RegionName']))
+    result = clientRT.delete_resource_type(ResourceType=rt1['ResourceType'], ForceDelete = True)
+    #Notice the ForceDelete
+    #ForceDelete deletes whatever data you have/want to delete
+    
+    ##I do not know if this code will get the tags. However, if they are optional, I don't think it will really matter
+    ##There is actually a series of command in the AWS Linux command prompt that can 'nuke' all the services you are currently using
+    ##Before I implement this in AWS, please review and make necessary suggestion to make my code correct/appropriate
